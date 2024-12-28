@@ -6,13 +6,19 @@
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["deportes", "predicciones", "nfl", "nba", "mlb"],
+  "keywords": [
+    "deportes",
+    "predicciones",
+    "nfl",
+    "nba",
+    "mlb"
+  ],
   "author": "Tu Nombre",
   "license": "ISC",
   "dependencies": {
+    "better-sqlite3": "^11.7.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "node-fetch": "^2.6.7", 
-    "sqlite3": "^5.1.7"
+    "node-fetch": "^2.6.7"
   }
 }

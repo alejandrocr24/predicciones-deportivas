@@ -1,9 +1,9 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
-const fetch = require('node-fetch'); // Importar fetch para solicitudes HTTP
+const fetch = require('node-fetch'); // Asegúrate de que es la versión 2.6.7
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Usar el puerto proporcionado por Railway
 
 // Activar CORS para todas las solicitudes
 app.use(cors());
@@ -38,9 +38,8 @@ app.get('/fetch-games', async (req, res) => {
     try {
         const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
 
-        // Cambiar entre datos reales o simulados
-        const useMockData = false; // Cambia a `true` para usar datos simulados
         let events;
+        const useMockData = false; // Cambia a `true` para datos simulados
 
         if (useMockData) {
             const mockData = {
@@ -72,7 +71,7 @@ app.get('/fetch-games', async (req, res) => {
             return res.status(404).json({ error: 'No se encontraron eventos.' });
         }
 
-        // Limpiar tabla de juegos antes de agregar nuevos datos
+        // Limpiar la tabla antes de agregar nuevos datos
         db.run('DELETE FROM games', (err) => {
             if (err) {
                 console.error('Error al limpiar la tabla de juegos:', err.message);
@@ -86,8 +85,7 @@ app.get('/fetch-games', async (req, res) => {
             const teamA = event.competitions[0].competitors[0].team.displayName;
             const teamB = event.competitions[0].competitors[1].team.displayName;
             const date = event.date;
-
-            const analysis = analyzeGame(teamA, teamB); // Aplicar análisis
+            const analysis = analyzeGame(teamA, teamB);
 
             insertStmt.run([teamA, teamB, date, analysis], (err) => {
                 if (err) {
@@ -106,8 +104,8 @@ app.get('/fetch-games', async (req, res) => {
 
 // Método de análisis (simulación)
 function analyzeGame(teamA, teamB) {
-    const scoreA = Math.random() * 30 + 10; // Simula puntos para el equipo A
-    const scoreB = Math.random() * 30 + 10; // Simula puntos para el equipo B
+    const scoreA = Math.random() * 30 + 10;
+    const scoreB = Math.random() * 30 + 10;
 
     return scoreA > scoreB
         ? `${teamA} es favorito sobre ${teamB} con una proyección de ${scoreA.toFixed(2)} a ${scoreB.toFixed(2)}.`
@@ -126,7 +124,7 @@ app.get('/games', (req, res) => {
     });
 });
 
-// Actualizar automáticamente los juegos cada 1 hora
+// Actualización automática cada hora
 setInterval(async () => {
     try {
         console.log('Actualizando juegos desde la API...');
@@ -136,7 +134,7 @@ setInterval(async () => {
     } catch (error) {
         console.error('Error al actualizar juegos automáticamente:', error.message);
     }
-}, 3600000); // 3600000 ms = 1 hora
+}, 3600000);
 
 // Iniciar el servidor
 app.listen(PORT, () => {
