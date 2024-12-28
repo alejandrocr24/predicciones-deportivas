@@ -1,5 +1,5 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3'); // Usar better-sqlite3
 const cors = require('cors');
 const fetch = require('node-fetch'); // Asegúrate de que es la versión 2.6.7
 const app = express();
@@ -8,17 +8,11 @@ const PORT = process.env.PORT || 3000; // Usar el puerto proporcionado por Railw
 // Activar CORS para todas las solicitudes
 app.use(cors());
 
-// Conectar a la base de datos SQLite
-const db = new sqlite3.Database('./sports.db', (err) => {
-    if (err) {
-        console.error('Error al conectar a la base de datos:', err.message);
-    } else {
-        console.log('Conectado a la base de datos SQLite.');
-    }
-});
+// Conectar a la base de datos SQLite usando better-sqlite3
+const db = new Database('./sports.db', { verbose: console.log });
 
-// Crear tabla de juegos
-db.run(`
+// Crear tabla de juegos si no existe
+db.prepare(`
     CREATE TABLE IF NOT EXISTS games (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         teamA TEXT,
@@ -26,7 +20,7 @@ db.run(`
         date TEXT,
         analysis TEXT
     )
-`);
+`).run();
 
 // Endpoint básico para probar el servidor
 app.get('/', (req, res) => {
@@ -39,7 +33,7 @@ app.get('/fetch-games', async (req, res) => {
         const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
 
         let events;
-        const useMockData = false; // Cambia a `true` para datos simulados
+        const useMockData = false; // Cambia a `true` para usar datos simulados
 
         if (useMockData) {
             const mockData = {
@@ -72,12 +66,7 @@ app.get('/fetch-games', async (req, res) => {
         }
 
         // Limpiar la tabla antes de agregar nuevos datos
-        db.run('DELETE FROM games', (err) => {
-            if (err) {
-                console.error('Error al limpiar la tabla de juegos:', err.message);
-                return res.status(500).json({ error: 'Error al limpiar la base de datos.' });
-            }
-        });
+        db.prepare('DELETE FROM games').run();
 
         // Insertar datos en la base de datos
         const insertStmt = db.prepare(`INSERT INTO games (teamA, teamB, date, analysis) VALUES (?, ?, ?, ?)`);
@@ -87,13 +76,8 @@ app.get('/fetch-games', async (req, res) => {
             const date = event.date;
             const analysis = analyzeGame(teamA, teamB);
 
-            insertStmt.run([teamA, teamB, date, analysis], (err) => {
-                if (err) {
-                    console.error('Error al insertar un juego en la base de datos:', err.message);
-                }
-            });
+            insertStmt.run(teamA, teamB, date, analysis);
         });
-        insertStmt.finalize();
 
         res.json({ message: 'Juegos guardados en la base de datos.' });
     } catch (error) {
@@ -114,14 +98,13 @@ function analyzeGame(teamA, teamB) {
 
 // Endpoint para obtener todos los juegos desde la base de datos
 app.get('/games', (req, res) => {
-    db.all('SELECT * FROM games', [], (err, rows) => {
-        if (err) {
-            console.error('Error al obtener juegos de la base de datos:', err.message);
-            res.status(500).json({ error: 'Error al obtener juegos de la base de datos.' });
-        } else {
-            res.json(rows);
-        }
-    });
+    try {
+        const rows = db.prepare('SELECT * FROM games').all();
+        res.json(rows);
+    } catch (error) {
+        console.error('Error al obtener juegos de la base de datos:', error.message);
+        res.status(500).json({ error: 'Error al obtener juegos de la base de datos.' });
+    }
 });
 
 // Actualización automática cada hora
