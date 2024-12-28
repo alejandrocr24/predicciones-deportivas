@@ -1,18 +1,18 @@
 {
   "name": "prediccionesdeportivas",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Aplicación para predicciones deportivas",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["deportes", "predicciones", "nfl", "nba", "mlb"],
+  "author": "Tu Nombre",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.6.7", 
     "sqlite3": "^5.1.7"
   }
 }
