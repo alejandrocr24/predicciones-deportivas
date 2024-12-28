@@ -120,3 +120,48 @@ footer {
 nav a.active {
     border-bottom: 2px solid #1a73e8;
 }
+/* Estilos para la sección de NFL */
+#nfl-analysis {
+    margin-top: 40px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#nfl-analysis h2 {
+    color: #1a73e8;
+    margin-bottom: 20px;
+}
+
+form#formNFL {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+form#formNFL label {
+    grid-column: 1 / span 2;
+    font-weight: bold;
+}
+
+form#formNFL input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+form#formNFL button {
+    grid-column: 1 / span 2;
+    background-color: #1a73e8;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+form#formNFL button:hover {
+    background-color: #0056b3;
+}
