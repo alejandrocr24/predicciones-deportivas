@@ -37,5 +37,32 @@
     <footer>
         <p>&copy; 2024 Predicciones Deportivas. Todos los derechos reservados.</p>
     </footer>
+    <script>
+        // Función para mostrar un mensaje al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            alert("¡Bienvenido a Predicciones Deportivas! Esperamos que nuestras predicciones te sean útiles.");
+        });
+    
+        // Función para destacar el enlace activo en la navegación
+        const links = document.querySelectorAll('nav a');
+        links.forEach(link => {
+            link.addEventListener('click', (event) => {
+                links.forEach(l => l.classList.remove('active'));
+                event.target.classList.add('active');
+            });
+        });
+    </script>
+    
+    
 </body>
+
 </html>
+<section id="noticias">
+    <h2>Últimas Noticias</h2>
+    <p>Mantente al día con las noticias deportivas más relevantes.</p>
+    <ul>
+        <li><a href="#" target="_blank">NFL: Resultados y análisis de la semana.</a></li>
+        <li><a href="#" target="_blank">NBA: Las mejores jugadas de la temporada.</a></li>
+        <li><a href="#" target="_blank">MLB: Rumores sobre transferencias de jugadores.</a></li>
+    </ul>
+</section>
