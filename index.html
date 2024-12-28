@@ -118,6 +118,47 @@
     
         // Llamar a la función al cargar la página
         fetchUpcomingGames();
+        // Función para analizar un juego
+function analyzeGame(teamA, teamB) {
+    // Simulación de datos (puedes reemplazar con lógica real)
+    const scoreA = Math.random() * 30 + 10; // Simula puntos para el equipo A
+    const scoreB = Math.random() * 30 + 10; // Simula puntos para el equipo B
+
+    return scoreA > scoreB
+        ? `${teamA} es favorito sobre ${teamB} con una proyección de ${scoreA.toFixed(2)} a ${scoreB.toFixed(2)}.`
+        : `${teamB} es favorito sobre ${teamA} con una proyección de ${scoreB.toFixed(2)} a ${scoreA.toFixed(2)}.`;
+}
+
+// Integrar análisis en la lista de juegos
+async function fetchAndAnalyzeGames() {
+    try {
+        const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const events = data.events;
+        gamesList.innerHTML = '';
+
+        events.forEach(event => {
+            const teamA = event.competitions[0].competitors[0].team.displayName;
+            const teamB = event.competitions[0].competitors[1].team.displayName;
+            const date = new Date(event.date);
+
+            const listItem = document.createElement('li');
+            const analysis = analyzeGame(teamA, teamB);
+
+            listItem.innerHTML = `<strong>${teamA} vs ${teamB}</strong> - ${date.toLocaleString()}<br>${analysis}`;
+            gamesList.appendChild(listItem);
+        });
+    } catch (error) {
+        console.error('Error al obtener o analizar juegos:', error);
+        gamesList.innerHTML = '<li>Error al cargar o analizar los juegos.</li>';
+    }
+}
+
+// Llamar a la función
+fetchAndAnalyzeGames();
+
     </script>
     
 </body>
