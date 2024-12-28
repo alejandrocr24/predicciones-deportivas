@@ -33,81 +33,138 @@
             <h2>Contacto</h2>
             <p>Si tienes dudas, contáctanos en: <a href="mailto:info@predicciones.com">info@predicciones.com</a></p>
         </section>
+        <section id="noticias">
+            <h2>Últimas Noticias</h2>
+            <p>Mantente al día con las noticias deportivas más relevantes.</p>
+            <ul>
+                <li><a href="#" target="_blank">NFL: Resultados y análisis de la semana.</a></li>
+                <li><a href="#" target="_blank">NBA: Las mejores jugadas de la temporada.</a></li>
+                <li><a href="#" target="_blank">MLB: Rumores sobre transferencias de jugadores.</a></li>
+            </ul>
+        </section>
+        <section id="nfl-analysis">
+            <h2>Análisis de Juegos de NFL</h2>
+            <form id="formNFL">
+                <h3>Datos del Juego</h3>
+                <label for="teamA">Equipo A:</label>
+                <input type="text" id="teamA" placeholder="Nombre del equipo A" required>
+
+                <label for="teamB">Equipo B:</label>
+                <input type="text" id="teamB" placeholder="Nombre del equipo B" required>
+
+                <label for="pointsA">Promedio de puntos anotados por Equipo A:</label>
+                <input type="number" id="pointsA" required>
+
+                <label for="pointsB">Promedio de puntos anotados por Equipo B:</label>
+                <input type="number" id="pointsB" required>
+
+                <label for="defenseA">Eficiencia defensiva del Equipo A:</label>
+                <input type="number" step="0.01" id="defenseA" required>
+
+                <label for="defenseB">Eficiencia defensiva del Equipo B:</label>
+                <input type="number" step="0.01" id="defenseB" required>
+
+                <button type="submit">Analizar</button>
+            </form>
+            <div id="nflResult" style="margin-top: 20px; font-size: 1.2em; font-weight: bold;"></div>
+        </section>
+        <section id="upcoming-games">
+            <h2>Próximos Juegos</h2>
+            <ul id="gamesList">
+                <li>Cargando juegos...</li>
+            </ul>
+        </section>
     </main>
     <footer>
         <p>&copy; 2024 Predicciones Deportivas. Todos los derechos reservados.</p>
     </footer>
     <script>
-        // Función para mostrar un mensaje al cargar la página
         document.addEventListener('DOMContentLoaded', () => {
             alert("¡Bienvenido a Predicciones Deportivas! Esperamos que nuestras predicciones te sean útiles.");
-        });
-    
-        // Función para destacar el enlace activo en la navegación
-        const links = document.querySelectorAll('nav a');
-        links.forEach(link => {
-            link.addEventListener('click', (event) => {
-                links.forEach(l => l.classList.remove('active'));
-                event.target.classList.add('active');
+
+            const links = document.querySelectorAll('nav a');
+            links.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    links.forEach(l => l.classList.remove('active'));
+                    event.target.classList.add('active');
+                });
             });
-        });
-    </script>
-    
-    <script>
-        // Capturar el formulario y el contenedor del resultado
-        const formNFL = document.getElementById('formNFL');
-        const nflResult = document.getElementById('nflResult');
-    
-        // Método de análisis de NFL
-        formNFL.addEventListener('submit', (event) => {
-            event.preventDefault();
-    
-            // Capturar los datos del formulario
-            const teamA = document.getElementById('teamA').value;
-            const teamB = document.getElementById('teamB').value;
-            const pointsA = parseFloat(document.getElementById('pointsA').value);
-            const pointsB = parseFloat(document.getElementById('pointsB').value);
-            const defenseA = parseFloat(document.getElementById('defenseA').value);
-            const defenseB = parseFloat(document.getElementById('defenseB').value);
-    
-            // Realizar el análisis
-            const scoreA = pointsA * defenseB;
-            const scoreB = pointsB * defenseA;
-    
-            // Mostrar el resultado
-            if (scoreA > scoreB) {
-                nflResult.textContent = `${teamA} es favorito con una proyección de ${scoreA.toFixed(2)} puntos contra ${scoreB.toFixed(2)}.`;
-            } else if (scoreB > scoreA) {
-                nflResult.textContent = `${teamB} es favorito con una proyección de ${scoreB.toFixed(2)} puntos contra ${scoreA.toFixed(2)}.`;
-            } else {
-                nflResult.textContent = `El juego entre ${teamA} y ${teamB} está muy igualado.`;
+
+            // Capturar el formulario y el contenedor del resultado
+            const formNFL = document.getElementById('formNFL');
+            const nflResult = document.getElementById('nflResult');
+            if (formNFL && nflResult) {
+                formNFL.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const teamA = document.getElementById('teamA').value;
+                    const teamB = document.getElementById('teamB').value;
+                    const pointsA = parseFloat(document.getElementById('pointsA').value);
+                    const pointsB = parseFloat(document.getElementById('pointsB').value);
+                    const defenseA = parseFloat(document.getElementById('defenseA').value);
+                    const defenseB = parseFloat(document.getElementById('defenseB').value);
+
+                    const scoreA = pointsA * defenseB;
+                    const scoreB = pointsB * defenseA;
+
+                    nflResult.textContent = scoreA > scoreB
+                        ? `${teamA} es favorito con una proyección de ${scoreA.toFixed(2)} puntos contra ${scoreB.toFixed(2)}.`
+                        : `${teamB} es favorito con una proyección de ${scoreB.toFixed(2)} puntos contra ${scoreA.toFixed(2)}.`;
+                });
+            }
+
+            const gamesList = document.getElementById('gamesList');
+            if (gamesList) {
+                async function fetchUpcomingGames() {
+                    try {
+                        const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        const events = data.events;
+                        gamesList.innerHTML = '';
+                        events.forEach(event => {
+                            const teamA = event.competitions[0].competitors[0].team.displayName;
+                            const teamB = event.competitions[0].competitors[1].team.displayName;
+                            const date = new Date(event.date);
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `${teamA} vs ${teamB} - ${date.toLocaleString()}`;
+                            gamesList.appendChild(listItem);
+                        });
+                    } catch (error) {
+                        console.error('Error al obtener juegos:', error);
+                        gamesList.innerHTML = '<li>Error al cargar los juegos.</li>';
+                    }
+                }
+                fetchUpcomingGames();
             }
         });
     </script>
-    <script>
+</body>
+</html>
+<section id="upcoming-games">
+    <h2>Próximos Juegos</h2>
+    <ul id="gamesList">
+        <li>Cargando juegos...</li>
+    </ul>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
         const gamesList = document.getElementById('gamesList');
-    
-        // Función para obtener los próximos juegos de ESPN API
-        async function fetchUpcomingGames() {
+
+        // Función para obtener juegos desde el backend
+        async function fetchGamesFromBackend() {
             try {
-                // Endpoint para obtener juegos de NFL (puedes cambiar NFL por NBA o MLB)
-                const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
-                const response = await fetch(url);
-                const data = await response.json();
-    
-                // Extraer los próximos juegos
-                const events = data.events;
-    
-                // Limpiar lista antes de agregar nuevos juegos
-                gamesList.innerHTML = '';
-    
-                events.forEach(event => {
+                const response = await fetch('http://localhost:3000/games');
+                const games = await response.json();
+
+                gamesList.innerHTML = ''; // Limpia la lista antes de agregar juegos
+
+                games.forEach(game => {
                     const listItem = document.createElement('li');
-                    const teamA = event.competitions[0].competitors[0].team.displayName;
-                    const teamB = event.competitions[0].competitors[1].team.displayName;
-                    const date = new Date(event.date);
-    
-                    listItem.textContent = `${teamA} vs ${teamB} - ${date.toLocaleString()}`;
+                    listItem.innerHTML = `
+                        <strong>${game.teamA} vs ${game.teamB}</strong> - ${new Date(game.date).toLocaleString()}<br>
+                        ${game.analysis}
+                    `;
                     gamesList.appendChild(listItem);
                 });
             } catch (error) {
@@ -115,93 +172,8 @@
                 gamesList.innerHTML = '<li>Error al cargar los juegos.</li>';
             }
         }
-    
+
         // Llamar a la función al cargar la página
-        fetchUpcomingGames();
-        // Función para analizar un juego
-function analyzeGame(teamA, teamB) {
-    // Simulación de datos (puedes reemplazar con lógica real)
-    const scoreA = Math.random() * 30 + 10; // Simula puntos para el equipo A
-    const scoreB = Math.random() * 30 + 10; // Simula puntos para el equipo B
-
-    return scoreA > scoreB
-        ? `${teamA} es favorito sobre ${teamB} con una proyección de ${scoreA.toFixed(2)} a ${scoreB.toFixed(2)}.`
-        : `${teamB} es favorito sobre ${teamA} con una proyección de ${scoreB.toFixed(2)} a ${scoreA.toFixed(2)}.`;
-}
-
-// Integrar análisis en la lista de juegos
-async function fetchAndAnalyzeGames() {
-    try {
-        const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
-        const response = await fetch(url);
-        const data = await response.json();
-
-        const events = data.events;
-        gamesList.innerHTML = '';
-
-        events.forEach(event => {
-            const teamA = event.competitions[0].competitors[0].team.displayName;
-            const teamB = event.competitions[0].competitors[1].team.displayName;
-            const date = new Date(event.date);
-
-            const listItem = document.createElement('li');
-            const analysis = analyzeGame(teamA, teamB);
-
-            listItem.innerHTML = `<strong>${teamA} vs ${teamB}</strong> - ${date.toLocaleString()}<br>${analysis}`;
-            gamesList.appendChild(listItem);
-        });
-    } catch (error) {
-        console.error('Error al obtener o analizar juegos:', error);
-        gamesList.innerHTML = '<li>Error al cargar o analizar los juegos.</li>';
-    }
-}
-
-// Llamar a la función
-fetchAndAnalyzeGames();
-
-    </script>
-    
-</body>
-
-</html>
-<section id="noticias">
-    <h2>Últimas Noticias</h2>
-    <p>Mantente al día con las noticias deportivas más relevantes.</p>
-    <ul>
-        <li><a href="#" target="_blank">NFL: Resultados y análisis de la semana.</a></li>
-        <li><a href="#" target="_blank">NBA: Las mejores jugadas de la temporada.</a></li>
-        <li><a href="#" target="_blank">MLB: Rumores sobre transferencias de jugadores.</a></li>
-    </ul>
-</section>
-<section id="nfl-analysis">
-    <h2>Análisis de Juegos de NFL</h2>
-    <form id="formNFL">
-        <h3>Datos del Juego</h3>
-        <label for="teamA">Equipo A:</label>
-        <input type="text" id="teamA" placeholder="Nombre del equipo A" required>
-
-        <label for="teamB">Equipo B:</label>
-        <input type="text" id="teamB" placeholder="Nombre del equipo B" required>
-
-        <label for="pointsA">Promedio de puntos anotados por Equipo A:</label>
-        <input type="number" id="pointsA" required>
-
-        <label for="pointsB">Promedio de puntos anotados por Equipo B:</label>
-        <input type="number" id="pointsB" required>
-
-        <label for="defenseA">Eficiencia defensiva del Equipo A:</label>
-        <input type="number" step="0.01" id="defenseA" required>
-
-        <label for="defenseB">Eficiencia defensiva del Equipo B:</label>
-        <input type="number" step="0.01" id="defenseB" required>
-
-        <button type="submit">Analizar</button>
-    </form>
-    <div id="nflResult" style="margin-top: 20px; font-size: 1.2em; font-weight: bold;"></div>
-</section>
-<section id="upcoming-games">
-    <h2>Próximos Juegos</h2>
-    <ul id="gamesList">
-        <li>Cargando juegos...</li>
-    </ul>
-</section>
+        await fetchGamesFromBackend();
+    });
+</script>
