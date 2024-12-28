@@ -17,31 +17,23 @@
         <a href="#contacto">Contacto</a>
     </nav>
     <main>
+        <!-- Sección de Inicio -->
         <section id="inicio">
             <h2>Inicio</h2>
             <p>Aquí encontrarás predicciones confiables para NFL, NBA y MLB.</p>
         </section>
+
+        <!-- Sección de Predicciones -->
         <section id="predicciones">
             <h2>Predicciones</h2>
-            <div>
+            <div id="predictionResults">
                 <h3>Partido: Miami Dolphins vs Dallas Cowboys</h3>
                 <p>Predicción: <strong>Victoria Dolphins</strong></p>
                 <p>Probabilidad: 75%</p>
             </div>
         </section>
-        <section id="contacto">
-            <h2>Contacto</h2>
-            <p>Si tienes dudas, contáctanos en: <a href="mailto:info@predicciones.com">info@predicciones.com</a></p>
-        </section>
-        <section id="noticias">
-            <h2>Últimas Noticias</h2>
-            <p>Mantente al día con las noticias deportivas más relevantes.</p>
-            <ul>
-                <li><a href="#" target="_blank">NFL: Resultados y análisis de la semana.</a></li>
-                <li><a href="#" target="_blank">NBA: Las mejores jugadas de la temporada.</a></li>
-                <li><a href="#" target="_blank">MLB: Rumores sobre transferencias de jugadores.</a></li>
-            </ul>
-        </section>
+
+        <!-- Formulario de Análisis de NFL -->
         <section id="nfl-analysis">
             <h2>Análisis de Juegos de NFL</h2>
             <form id="formNFL">
@@ -68,6 +60,8 @@
             </form>
             <div id="nflResult" style="margin-top: 20px; font-size: 1.2em; font-weight: bold;"></div>
         </section>
+
+        <!-- Sección de Próximos Juegos -->
         <section id="upcoming-games">
             <h2>Próximos Juegos</h2>
             <ul id="gamesList">
@@ -78,10 +72,14 @@
     <footer>
         <p>&copy; 2024 Predicciones Deportivas. Todos los derechos reservados.</p>
     </footer>
+
+    <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Mostrar mensaje de bienvenida
             alert("¡Bienvenido a Predicciones Deportivas! Esperamos que nuestras predicciones te sean útiles.");
 
+            // Destacar enlaces activos en el menú de navegación
             const links = document.querySelectorAll('nav a');
             links.forEach(link => {
                 link.addEventListener('click', (event) => {
@@ -90,90 +88,54 @@
                 });
             });
 
-            // Capturar el formulario y el contenedor del resultado
+            // Análisis de juegos de NFL
             const formNFL = document.getElementById('formNFL');
             const nflResult = document.getElementById('nflResult');
-            if (formNFL && nflResult) {
-                formNFL.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const teamA = document.getElementById('teamA').value;
-                    const teamB = document.getElementById('teamB').value;
-                    const pointsA = parseFloat(document.getElementById('pointsA').value);
-                    const pointsB = parseFloat(document.getElementById('pointsB').value);
-                    const defenseA = parseFloat(document.getElementById('defenseA').value);
-                    const defenseB = parseFloat(document.getElementById('defenseB').value);
+            formNFL.addEventListener('submit', (event) => {
+                event.preventDefault();
 
-                    const scoreA = pointsA * defenseB;
-                    const scoreB = pointsB * defenseA;
+                const teamA = document.getElementById('teamA').value;
+                const teamB = document.getElementById('teamB').value;
+                const pointsA = parseFloat(document.getElementById('pointsA').value);
+                const pointsB = parseFloat(document.getElementById('pointsB').value);
+                const defenseA = parseFloat(document.getElementById('defenseA').value);
+                const defenseB = parseFloat(document.getElementById('defenseB').value);
 
-                    nflResult.textContent = scoreA > scoreB
-                        ? `${teamA} es favorito con una proyección de ${scoreA.toFixed(2)} puntos contra ${scoreB.toFixed(2)}.`
-                        : `${teamB} es favorito con una proyección de ${scoreB.toFixed(2)} puntos contra ${scoreA.toFixed(2)}.`;
-                });
-            }
+                const scoreA = pointsA * defenseB;
+                const scoreB = pointsB * defenseA;
 
+                nflResult.textContent = scoreA > scoreB
+                    ? `${teamA} es favorito con una proyección de ${scoreA.toFixed(2)} puntos contra ${scoreB.toFixed(2)}.`
+                    : `${teamB} es favorito con una proyección de ${scoreB.toFixed(2)} puntos contra ${scoreA.toFixed(2)}.`;
+            });
+
+            // Obtener próximos juegos del backend
             const gamesList = document.getElementById('gamesList');
-            if (gamesList) {
-                async function fetchUpcomingGames() {
-                    try {
-                        const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
-                        const response = await fetch(url);
-                        const data = await response.json();
-                        const events = data.events;
-                        gamesList.innerHTML = '';
-                        events.forEach(event => {
-                            const teamA = event.competitions[0].competitors[0].team.displayName;
-                            const teamB = event.competitions[0].competitors[1].team.displayName;
-                            const date = new Date(event.date);
-                            const listItem = document.createElement('li');
-                            listItem.textContent = `${teamA} vs ${teamB} - ${date.toLocaleString()}`;
-                            gamesList.appendChild(listItem);
-                        });
-                    } catch (error) {
-                        console.error('Error al obtener juegos:', error);
-                        gamesList.innerHTML = '<li>Error al cargar los juegos.</li>';
-                    }
+            async function fetchGamesFromBackend() {
+                try {
+                    const response = await fetch('http://localhost:3000/games');
+                    if (!response.ok) throw new Error('Error al obtener los juegos.');
+
+                    const games = await response.json();
+                    gamesList.innerHTML = ''; // Limpiar la lista
+
+                    games.forEach(game => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                            <strong>${game.teamA} vs ${game.teamB}</strong> - ${new Date(game.date).toLocaleString()}<br>
+                            ${game.analysis}
+                        `;
+                        gamesList.appendChild(listItem);
+                    });
+                } catch (error) {
+                    console.error('Error al obtener juegos:', error);
+                    gamesList.innerHTML = '<li>Error al cargar los juegos.</li>';
                 }
-                fetchUpcomingGames();
             }
+
+            // Llamar a la función al cargar la página
+            fetchGamesFromBackend();
         });
     </script>
 </body>
 </html>
-<section id="upcoming-games">
-    <h2>Próximos Juegos</h2>
-    <ul id="gamesList">
-        <li>Cargando juegos...</li>
-    </ul>
-</section>
-
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const gamesList = document.getElementById('gamesList');
-
-        // Función para obtener juegos desde el backend
-        async function fetchGamesFromBackend() {
-            try {
-                const response = await fetch('http://localhost:3000/games');
-                const games = await response.json();
-
-                gamesList.innerHTML = ''; // Limpia la lista antes de agregar juegos
-
-                games.forEach(game => {
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `
-                        <strong>${game.teamA} vs ${game.teamB}</strong> - ${new Date(game.date).toLocaleString()}<br>
-                        ${game.analysis}
-                    `;
-                    gamesList.appendChild(listItem);
-                });
-            } catch (error) {
-                console.error('Error al obtener juegos:', error);
-                gamesList.innerHTML = '<li>Error al cargar los juegos.</li>';
-            }
-        }
-
-        // Llamar a la función al cargar la página
-        await fetchGamesFromBackend();
-    });
-</script>

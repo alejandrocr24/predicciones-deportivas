@@ -1,6 +1,6 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
-const cors = require('cors'); // Importar cors
+const cors = require('cors');
 const fetch = require('node-fetch'); // Importar fetch para solicitudes HTTP
 const app = express();
 const PORT = 3000;
@@ -37,24 +37,40 @@ app.get('/', (req, res) => {
 app.get('/fetch-games', async (req, res) => {
     try {
         const url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
-        const mockData = {
-            events: [
-                {
-                    competitions: [
-                        {
-                            competitors: [
-                                { team: { displayName: 'Equipo A' } },
-                                { team: { displayName: 'Equipo B' } }
-                            ]
-                        }
-                    ],
-                    date: '2024-12-28T01:00:00Z'
-                }
-            ]
-        };
-        
-// Usa mockData en lugar de data para pruebas simuladas
-const events = mockData.events;
+
+        // Cambiar entre datos reales o simulados
+        const useMockData = false; // Cambia a `true` para usar datos simulados
+        let events;
+
+        if (useMockData) {
+            const mockData = {
+                events: [
+                    {
+                        competitions: [
+                            {
+                                competitors: [
+                                    { team: { displayName: 'Equipo A' } },
+                                    { team: { displayName: 'Equipo B' } }
+                                ]
+                            }
+                        ],
+                        date: '2024-12-28T01:00:00Z'
+                    }
+                ]
+            };
+            events = mockData.events;
+        } else {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Error al obtener datos de la API: ${response.statusText}`);
+            }
+            const data = await response.json();
+            events = data.events;
+        }
+
+        if (!events || events.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron eventos.' });
+        }
 
         // Limpiar tabla de juegos antes de agregar nuevos datos
         db.run('DELETE FROM games', (err) => {
@@ -110,11 +126,6 @@ app.get('/games', (req, res) => {
     });
 });
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
-
 // Actualizar automáticamente los juegos cada 1 hora
 setInterval(async () => {
     try {
@@ -126,3 +137,8 @@ setInterval(async () => {
         console.error('Error al actualizar juegos automáticamente:', error.message);
     }
 }, 3600000); // 3600000 ms = 1 hora
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
